@@ -1,0 +1,28 @@
+[package]
+name = "entsoe"
+version = "0.1.0"
+edition = "2024"
+authors = ["Vesa Kaihlavirta <vegai@iki.fi>"]
+description = "A library for fetching and parsing data from the ENTSO-E Transparency Platform API"
+homepage = "https://github.com/vegai/entsoe"
+repository = "https://github.com/vegai/entsoe"
+documentation = "https://docs.rs/entsoe"
+readme = "README.md"
+keywords = ["entsoe", "electricity", "energy", "api", "europe"]
+categories = ["api-bindings", "parser-implementations"]
+license = "AGPL-3.0"
+
+[dependencies]
+tokio = { version = "^1", features = ["full"] }
+reqwest = { version = "^0", features = ["json"] }
+serde = { version = "^1", features = ["derive"] }
+chrono = { version = "^0", features = ["serde"] }
+quick-xml = { version = "^0", features = ["serialize"] }
+thiserror = "^1"
+url = "^2"
+bytes = "^1"
+
+[dev-dependencies]
+# Testing utilities
+tokio-test = "^0"
+mockito = "^1"
