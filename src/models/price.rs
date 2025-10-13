@@ -22,6 +22,7 @@ pub enum Resolution {
 }
 
 impl Resolution {
+    #[must_use] 
     pub fn parse(s: &str) -> Option<Self> {
         match s {
             "PT15M" => Some(Resolution::PT15M),
@@ -30,6 +31,7 @@ impl Resolution {
         }
     }
 
+    #[must_use] 
     pub fn minutes(&self) -> i64 {
         match self {
             Resolution::PT15M => 15,

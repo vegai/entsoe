@@ -2,6 +2,11 @@
 //!
 //! Get an API token at <https://transparency.entsoe.eu/>
 
+#![warn(clippy::pedantic)]
+#![warn(clippy::unwrap_used)]
+#![allow(clippy::too_many_lines)]
+#![allow(clippy::module_name_repetitions)]
+
 pub mod bidding_zone;
 pub mod client;
 pub mod error;

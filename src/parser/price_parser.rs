@@ -5,6 +5,15 @@ use quick_xml::events::Event;
 use crate::error::{EntsoeError, Result};
 use crate::models::price::{PriceDocument, PricePoint, Resolution};
 
+/// Parses ENTSO-E XML response into a price document.
+///
+/// # Errors
+///
+/// Returns error if XML is malformed, required fields are missing, or datetime parsing fails.
+///
+/// # Panics
+///
+/// Panics if `period_start` or `period_end` comparisons fail (should not happen with valid UTC datetimes).
 pub fn parse_day_ahead_prices(xml: &[u8]) -> Result<PriceDocument> {
     let mut reader = Reader::from_reader(xml);
     reader.config_mut().trim_text(true);
@@ -69,7 +78,7 @@ pub fn parse_day_ahead_prices(xml: &[u8]) -> Result<PriceDocument> {
             }
             Ok(Event::Text(e)) => {
                 let text = std::str::from_utf8(&e)
-                    .map_err(|e| EntsoeError::XmlParseError(format!("Invalid UTF-8: {}", e)))?;
+                    .map_err(|e| EntsoeError::XmlParseError(format!("Invalid UTF-8: {e}")))?;
                 let text = text.trim();
 
                 if text.is_empty() {
@@ -99,7 +108,7 @@ pub fn parse_day_ahead_prices(xml: &[u8]) -> Result<PriceDocument> {
                             .map(|dt| dt.with_timezone(&Utc));
                         current_period_start = dt;
                         if let Some(dt_val) = dt
-                            && (period_start.is_none() || period_start.unwrap() > dt_val)
+                            && period_start.is_none_or(|ps| ps > dt_val)
                         {
                             period_start = Some(dt_val);
                         }
@@ -115,7 +124,7 @@ pub fn parse_day_ahead_prices(xml: &[u8]) -> Result<PriceDocument> {
                             .ok()
                             .map(|dt| dt.with_timezone(&Utc));
                         if let Some(dt_val) = dt
-                            && (period_end.is_none() || period_end.unwrap() < dt_val)
+                            && period_end.is_none_or(|pe| pe < dt_val)
                         {
                             period_end = Some(dt_val);
                         }
@@ -132,8 +141,7 @@ pub fn parse_day_ahead_prices(xml: &[u8]) -> Result<PriceDocument> {
             Ok(Event::Eof) => break,
             Err(e) => {
                 return Err(EntsoeError::XmlParseError(format!(
-                    "XML parsing error: {}",
-                    e
+                    "XML parsing error: {e}"
                 )));
             }
             _ => {}
@@ -159,7 +167,7 @@ pub fn parse_day_ahead_prices(xml: &[u8]) -> Result<PriceDocument> {
     let mut prices: Vec<PricePoint> = all_points
         .into_iter()
         .map(|(start, position, price)| {
-            let offset_minutes = (position as i64 - 1) * resolution.minutes();
+            let offset_minutes = (i64::from(position) - 1) * resolution.minutes();
             let timestamp = start + Duration::minutes(offset_minutes);
             PricePoint { timestamp, price }
         })

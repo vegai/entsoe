@@ -27,6 +27,7 @@ pub enum BiddingZone {
 }
 
 impl BiddingZone {
+    #[must_use] 
     pub fn eic_code(&self) -> &'static str {
         match self {
             BiddingZone::DE => "10Y1001A1001A82H",
@@ -55,6 +56,7 @@ impl BiddingZone {
     }
 
     /// Parses a bidding zone from a string code (case-insensitive).
+    #[must_use] 
     pub fn from_code(code: &str) -> Option<Self> {
         match code.to_uppercase().as_str() {
             "DE" => Some(BiddingZone::DE),
@@ -83,6 +85,7 @@ impl BiddingZone {
         }
     }
 
+    #[must_use] 
     pub fn code(&self) -> &'static str {
         match self {
             BiddingZone::DE => "DE",

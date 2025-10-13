@@ -24,6 +24,10 @@ impl EntsoeClient {
     }
 
     /// Fetches day-ahead prices as raw XML bytes. Times must be in UTC.
+    ///
+    /// # Errors
+    ///
+    /// Returns error if the HTTP request fails, URL construction fails, or time range is invalid.
     pub async fn fetch_day_ahead_prices(
         &self,
         bidding_zone: BiddingZone,
@@ -46,8 +50,7 @@ impl EntsoeClient {
             let status = response.status();
             let body = response.text().await.unwrap_or_default();
             return Err(EntsoeError::ApiError(format!(
-                "API returned status {}: {}",
-                status, body
+                "API returned status {status}: {body}"
             )));
         }
 
@@ -56,6 +59,10 @@ impl EntsoeClient {
     }
 
     /// Fetches and parses day-ahead prices. Times must be in UTC.
+    ///
+    /// # Errors
+    ///
+    /// Returns error if the HTTP request fails, XML parsing fails, or time range is invalid.
     pub async fn get_day_ahead_prices(
         &self,
         bidding_zone: BiddingZone,
