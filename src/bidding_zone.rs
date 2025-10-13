@@ -1,10 +1,5 @@
 use std::fmt;
 
-/// European electricity bidding zones with their EIC codes.
-///
-/// Bidding zones are areas within the European electricity market where
-/// a single electricity price applies. Each zone has a unique Energy
-/// Identification Code (EIC).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum BiddingZone {
     DE,
@@ -32,16 +27,6 @@ pub enum BiddingZone {
 }
 
 impl BiddingZone {
-    /// Returns the EIC code for this bidding zone.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use entsoe::BiddingZone;
-    ///
-    /// assert_eq!(BiddingZone::FI.eic_code(), "10YFI-1--------U");
-    /// assert_eq!(BiddingZone::NO2.eic_code(), "10YNO-2--------T");
-    /// ```
     pub fn eic_code(&self) -> &'static str {
         match self {
             BiddingZone::DE => "10Y1001A1001A82H",
@@ -69,20 +54,7 @@ impl BiddingZone {
         }
     }
 
-    /// Parses a bidding zone from a string code.
-    ///
-    /// Accepts both uppercase and lowercase codes.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use entsoe::BiddingZone;
-    ///
-    /// assert_eq!(BiddingZone::from_code("FI"), Some(BiddingZone::FI));
-    /// assert_eq!(BiddingZone::from_code("no2"), Some(BiddingZone::NO2));
-    /// assert_eq!(BiddingZone::from_code("se3"), Some(BiddingZone::SE3));
-    /// assert_eq!(BiddingZone::from_code("INVALID"), None);
-    /// ```
+    /// Parses a bidding zone from a string code (case-insensitive).
     pub fn from_code(code: &str) -> Option<Self> {
         match code.to_uppercase().as_str() {
             "DE" => Some(BiddingZone::DE),
@@ -111,16 +83,6 @@ impl BiddingZone {
         }
     }
 
-    /// Returns the short code for this bidding zone.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use entsoe::BiddingZone;
-    ///
-    /// assert_eq!(BiddingZone::FI.code(), "FI");
-    /// assert_eq!(BiddingZone::NO2.code(), "NO2");
-    /// ```
     pub fn code(&self) -> &'static str {
         match self {
             BiddingZone::DE => "DE",

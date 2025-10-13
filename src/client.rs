@@ -10,36 +10,12 @@ use crate::parser::parse_day_ahead_prices;
 const API_BASE_URL: &str = "https://web-api.tp.entsoe.eu/api";
 
 /// Client for interacting with the ENTSO-E Transparency Platform API.
-///
-/// The client holds an API security token and provides methods to fetch data
-/// from the ENTSO-E API.
-///
-/// # Examples
-///
-/// ```no_run
-/// use entsoe::EntsoeClient;
-///
-/// let client = EntsoeClient::new("your-api-token");
-/// ```
 pub struct EntsoeClient {
     api_token: String,
     http_client: Client,
 }
 
 impl EntsoeClient {
-    /// Creates a new ENTSO-E API client with the provided security token.
-    ///
-    /// # Arguments
-    ///
-    /// * `api_token` - Your ENTSO-E API security token
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use entsoe::EntsoeClient;
-    ///
-    /// let client = EntsoeClient::new("your-api-token");
-    /// ```
     pub fn new(api_token: impl Into<String>) -> Self {
         Self {
             api_token: api_token.into(),
@@ -47,38 +23,7 @@ impl EntsoeClient {
         }
     }
 
-    /// Fetches day-ahead electricity prices for a specific bidding zone.
-    ///
-    /// Returns the raw XML response as bytes. The time range must be in UTC.
-    ///
-    /// # Arguments
-    ///
-    /// * `bidding_zone` - The bidding zone (e.g., `BiddingZone::FI`, `BiddingZone::NO2`)
-    /// * `period_start` - Start of the time period (inclusive, UTC)
-    /// * `period_end` - End of the time period (exclusive, UTC)
-    ///
-    /// # Examples
-    ///
-    /// ```no_run
-    /// use entsoe::{EntsoeClient, BiddingZone};
-    /// use chrono::{Utc, Duration};
-    ///
-    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-    /// let client = EntsoeClient::new("your-api-token");
-    /// let start = Utc::now();
-    /// let end = start + Duration::hours(24);
-    ///
-    /// let xml = client.fetch_day_ahead_prices(BiddingZone::FI, start, end).await?;
-    /// # Ok(())
-    /// # }
-    /// ```
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if:
-    /// - The HTTP request fails
-    /// - The URL cannot be constructed
-    /// - The time range is invalid (start >= end)
+    /// Fetches day-ahead prices as raw XML bytes. Times must be in UTC.
     pub async fn fetch_day_ahead_prices(
         &self,
         bidding_zone: BiddingZone,
@@ -110,42 +55,7 @@ impl EntsoeClient {
         Ok(bytes)
     }
 
-    /// Fetches and parses day-ahead electricity prices for a specific bidding zone.
-    ///
-    /// This is a convenience method that combines fetching and parsing in one call.
-    ///
-    /// # Arguments
-    ///
-    /// * `bidding_zone` - The bidding zone (e.g., `BiddingZone::FI`, `BiddingZone::NO2`)
-    /// * `period_start` - Start of the time period (inclusive, UTC)
-    /// * `period_end` - End of the time period (exclusive, UTC)
-    ///
-    /// # Examples
-    ///
-    /// ```no_run
-    /// use entsoe::{EntsoeClient, BiddingZone};
-    /// use chrono::{Utc, Duration};
-    ///
-    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-    /// let client = EntsoeClient::new("your-api-token");
-    /// let start = Utc::now();
-    /// let end = start + Duration::hours(24);
-    ///
-    /// let prices = client.get_day_ahead_prices(BiddingZone::FI, start, end).await?;
-    /// for price_point in prices.prices {
-    ///     println!("{}: {:.2} {}", price_point.timestamp, price_point.price, prices.currency);
-    /// }
-    /// # Ok(())
-    /// # }
-    /// ```
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if:
-    /// - The HTTP request fails
-    /// - The URL cannot be constructed
-    /// - The time range is invalid (start >= end)
-    /// - The XML response cannot be parsed
+    /// Fetches and parses day-ahead prices. Times must be in UTC.
     pub async fn get_day_ahead_prices(
         &self,
         bidding_zone: BiddingZone,

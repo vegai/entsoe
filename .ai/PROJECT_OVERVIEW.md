@@ -94,3 +94,4 @@ XML document following the IEC 62325 standard, containing:
 - Use minimal emojis in documentation and code
 - Keep documentation focused and avoid redundant information that can become stale
 - Never document directory structures or file trees - they become stale immediately and are easy to discover with `ls` or `find`
+- Lean documentation: Don't document what's obvious from the code itself. Only document why, context, edge cases, and non-obvious behavior. Type signatures and parameter names should be self-explanatory.
