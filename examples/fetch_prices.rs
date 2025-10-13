@@ -14,30 +14,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let start = Utc::now();
     let end = start + Duration::hours(24);
 
-    println!("Fetching day-ahead prices for Finland...");
-    println!("Period: {} to {}", start, end);
-    println!();
-
-    let xml_data = client
-        .fetch_day_ahead_prices(BiddingZone::FI, start, end)
+    let price_doc = client
+        .get_day_ahead_prices(BiddingZone::FI, start, end)
         .await?;
 
-    println!(
-        "✓ Successfully received {} bytes of XML data",
-        xml_data.len()
-    );
-    println!();
-    println!("First 500 characters of response:");
-    println!("─────────────────────────────────────");
-    println!(
-        "{}",
-        String::from_utf8_lossy(&xml_data[..500.min(xml_data.len())])
-    );
-
-    if xml_data.len() > 500 {
-        println!("...");
-        println!("(truncated {} bytes)", xml_data.len() - 500);
-    }
+    println!("{:#?}", price_doc);
 
     Ok(())
 }

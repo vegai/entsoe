@@ -4,6 +4,8 @@ use url::Url;
 
 use crate::bidding_zone::BiddingZone;
 use crate::error::{EntsoeError, Result};
+use crate::models::PriceDocument;
+use crate::parser::parse_day_ahead_prices;
 
 const API_BASE_URL: &str = "https://web-api.tp.entsoe.eu/api";
 
@@ -106,6 +108,54 @@ impl EntsoeClient {
 
         let bytes = response.bytes().await?;
         Ok(bytes)
+    }
+
+    /// Fetches and parses day-ahead electricity prices for a specific bidding zone.
+    ///
+    /// This is a convenience method that combines fetching and parsing in one call.
+    ///
+    /// # Arguments
+    ///
+    /// * `bidding_zone` - The bidding zone (e.g., `BiddingZone::FI`, `BiddingZone::NO2`)
+    /// * `period_start` - Start of the time period (inclusive, UTC)
+    /// * `period_end` - End of the time period (exclusive, UTC)
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use entsoe::{EntsoeClient, BiddingZone};
+    /// use chrono::{Utc, Duration};
+    ///
+    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// let client = EntsoeClient::new("your-api-token");
+    /// let start = Utc::now();
+    /// let end = start + Duration::hours(24);
+    ///
+    /// let prices = client.get_day_ahead_prices(BiddingZone::FI, start, end).await?;
+    /// for price_point in prices.prices {
+    ///     println!("{}: {:.2} {}", price_point.timestamp, price_point.price, prices.currency);
+    /// }
+    /// # Ok(())
+    /// # }
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if:
+    /// - The HTTP request fails
+    /// - The URL cannot be constructed
+    /// - The time range is invalid (start >= end)
+    /// - The XML response cannot be parsed
+    pub async fn get_day_ahead_prices(
+        &self,
+        bidding_zone: BiddingZone,
+        period_start: DateTime<Utc>,
+        period_end: DateTime<Utc>,
+    ) -> Result<PriceDocument> {
+        let xml = self
+            .fetch_day_ahead_prices(bidding_zone, period_start, period_end)
+            .await?;
+        parse_day_ahead_prices(&xml)
     }
 
     fn build_day_ahead_prices_url(
