@@ -23,14 +23,10 @@ pub enum BiddingZone {
     SE3,
     SE4,
     CH,
-    GB,
 }
 
 impl BiddingZone {
     /// Returns all available bidding zones that have day-ahead price data.
-    ///
-    /// Note: GB (United Kingdom) is excluded as it doesn't participate in the
-    /// European day-ahead electricity market and has no price data available.
     #[must_use]
     pub fn all_zones() -> Vec<BiddingZone> {
         vec![
@@ -82,7 +78,6 @@ impl BiddingZone {
             BiddingZone::SE3 => "10Y1001A1001A46L",
             BiddingZone::SE4 => "10Y1001A1001A47J",
             BiddingZone::CH => "10YCH-SWISSGRIDZ",
-            BiddingZone::GB => "10YGB----------A",
         }
     }
 
@@ -111,7 +106,6 @@ impl BiddingZone {
             "SE3" => Some(BiddingZone::SE3),
             "SE4" => Some(BiddingZone::SE4),
             "CH" => Some(BiddingZone::CH),
-            "GB" => Some(BiddingZone::GB),
             _ => None,
         }
     }
@@ -140,7 +134,6 @@ impl BiddingZone {
             BiddingZone::SE3 => "SE3",
             BiddingZone::SE4 => "SE4",
             BiddingZone::CH => "CH",
-            BiddingZone::GB => "GB",
         }
     }
 }
@@ -192,6 +185,5 @@ mod tests {
         assert!(zones.contains(&BiddingZone::FI));
         assert!(zones.contains(&BiddingZone::NO2));
         assert!(zones.contains(&BiddingZone::DE));
-        assert!(!zones.contains(&BiddingZone::GB));
     }
 }
