@@ -4,12 +4,17 @@ use rusqlite::{Connection, params};
 use std::env;
 
 fn init_database(conn: &Connection) -> Result<(), Box<dyn std::error::Error>> {
+    // Create prices table with CHECK constraints for data validation:
+    // - timestamp: RFC3339 format (YYYY-MM-DDTHH:MM:SS...)
+    // - price: Must be numeric (can be negative - electricity prices can go negative)
+    // - currency: Must be 3 uppercase letters (e.g., EUR, SEK)
+    // - price_area: Must be 2-8 characters (e.g., FI, NO2, IT-North)
     conn.execute(
         "CREATE TABLE IF NOT EXISTS prices (
-            timestamp TEXT NOT NULL,
-            price TEXT NOT NULL,
-            currency TEXT NOT NULL,
-            price_area TEXT NOT NULL,
+            timestamp TEXT NOT NULL CHECK(timestamp GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]T[0-9][0-9]:[0-9][0-9]:[0-9][0-9]*'),
+            price TEXT NOT NULL CHECK(price GLOB '*[0-9]*' AND typeof(CAST(price AS REAL)) = 'real'),
+            currency TEXT NOT NULL CHECK(length(currency) = 3 AND currency = upper(currency)),
+            price_area TEXT NOT NULL CHECK(length(price_area) >= 2 AND length(price_area) <= 8),
             PRIMARY KEY (timestamp, price_area)
         )",
         [],
