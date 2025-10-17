@@ -42,8 +42,6 @@ impl EntsoeClient {
 
         let url = self.build_day_ahead_prices_url(bidding_zone, period_start, period_end)?;
 
-        dbg!("URL is {}", &url);
-
         let response = self.http_client.get(url).send().await?;
 
         if !response.status().is_success() {

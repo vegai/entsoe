@@ -19,7 +19,7 @@ impl PricePoint {
 
 /// Document containing electricity price data from ENTSO-E.
 ///
-/// Note: Prices are in EUR/MWh as returned by the API.
+/// Day-ahead prices are in EUR/MWh for all zones (ENTSO-E standard).
 /// Use `PricePoint::price_per_kwh()` to convert to EUR/kWh.
 #[derive(Debug, Clone, PartialEq)]
 pub struct PriceDocument {

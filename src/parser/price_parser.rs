@@ -169,6 +169,7 @@ pub fn parse_day_ahead_prices(xml: &[u8]) -> Result<PriceDocument> {
         )));
     }
 
+    // Day-ahead prices are always in EUR (ENTSO-E standard for all zones).
     let currency = currency.unwrap_or_else(|| "EUR".to_string());
     let resolution =
         resolution.ok_or_else(|| EntsoeError::MissingField("resolution".to_string()))?;

@@ -172,7 +172,7 @@ XML document following IEC 62325-451 standard:
 - `type` - Document type (A44 for prices)
 - `createdDateTime` - When the document was created
 - `TimeSeries` - Contains the actual data
-  - `currency_Unit.name` - Currency (EUR, SEK, NOK, etc.)
+  - `currency_Unit.name` - Currency (always EUR for day-ahead prices, regardless of zone)
   - `price_Measure_Unit.name` - Unit (typically MWH)
   - `Period` - Time period with resolution
     - `resolution` - Time resolution (PT60M = 60 minutes, PT15M = 15 minutes)

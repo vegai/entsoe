@@ -119,6 +119,10 @@ See [CLI_README.md](CLI_README.md) for full documentation.
 - An ENTSO-E API token
 
 
+## Important Notes
+
+**Currency**: Day-ahead prices are in EUR/MWh for all zones (ENTSO-E standard). This includes non-Eurozone countries like Sweden, Norway, Denmark, Switzerland, and Poland.
+
 ## Resources
 
 - [ENTSO-E Transparency Platform](https://transparency.entsoe.eu/)

@@ -55,7 +55,7 @@ XML document following the IEC 62325 standard, containing:
 - TimeSeries with price points
 - Each point has a position (index) and price value
 - Resolution (typically PT60M for hourly prices)
-- Currency (EUR, SEK, NOK, etc.)
+- Currency (always EUR for day-ahead prices - ENTSO-E standard for all zones)
 
 ## Design Principles
 
@@ -89,7 +89,7 @@ XML document following the IEC 62325 standard, containing:
 - Bidding zones have specific EIC codes (Energy Identification Codes) - these are standardized
 - Times are always in UTC
 - The API has rate limits - be considerate in tests
-- Price values are typically in EUR/MWh but can vary by zone
+- Price values are always in EUR/MWh for day-ahead prices (A44), regardless of zone's local currency
 - Some zones may not have price data available
 - Use minimal emojis in documentation and code
 - Keep documentation focused and avoid redundant information that can become stale

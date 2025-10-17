@@ -6,7 +6,7 @@ fn export_to_csv(conn: &Connection, price_area: Option<&str>) -> SqliteResult<()
     let stdout = io::stdout();
     let mut handle = stdout.lock();
 
-    writeln!(handle, "timestamp,price_eur_per_kwh,currency,price_area")
+    writeln!(handle, "timestamp,price_per_kwh,currency,price_area")
         .expect("Failed to write header");
 
     if let Some(area) = price_area {
@@ -68,7 +68,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         eprintln!("  {} prices.db > out.csv # Save to file", args[0]);
         eprintln!();
         eprintln!(
-            "Output: CSV to stdout with columns: timestamp,price_eur_per_kwh,currency,price_area"
+            "Output: CSV to stdout with columns: timestamp,price_per_kwh,currency,price_area"
         );
         std::process::exit(1);
     }
