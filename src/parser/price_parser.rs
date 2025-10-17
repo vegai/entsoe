@@ -18,6 +18,10 @@ pub fn parse_day_ahead_prices(xml: &[u8]) -> Result<PriceDocument> {
     let mut reader = Reader::from_reader(xml);
     reader.config_mut().trim_text(true);
 
+    let mut is_error_document = false;
+    let mut error_code = None;
+    let mut error_text = None;
+
     let mut currency = None;
     let mut resolution = None;
     let mut period_start = None;
@@ -43,6 +47,7 @@ pub fn parse_day_ahead_prices(xml: &[u8]) -> Result<PriceDocument> {
                 current_tag = String::from_utf8_lossy(name.as_ref()).to_string();
 
                 match name.as_ref() {
+                    b"Acknowledgement_MarketDocument" => is_error_document = true,
                     b"TimeSeries" => in_time_series = true,
                     b"Period" if in_time_series => {
                         in_period = true;
@@ -86,6 +91,12 @@ pub fn parse_day_ahead_prices(xml: &[u8]) -> Result<PriceDocument> {
                 }
 
                 match current_tag.as_str() {
+                    "code" if is_error_document => {
+                        error_code = Some(text.to_string());
+                    }
+                    "text" if is_error_document => {
+                        error_text = Some(text.to_string());
+                    }
                     "currency_Unit.name" if in_time_series => {
                         if currency.is_none() {
                             currency = Some(text.to_string());
@@ -149,8 +160,16 @@ pub fn parse_day_ahead_prices(xml: &[u8]) -> Result<PriceDocument> {
         buf.clear();
     }
 
-    let currency =
-        currency.ok_or_else(|| EntsoeError::MissingField("currency_Unit.name".to_string()))?;
+    // Check if this is an error response (e.g., "No matching data found")
+    if is_error_document {
+        let code = error_code.unwrap_or_else(|| "unknown".to_string());
+        let text = error_text.unwrap_or_else(|| "No error message provided".to_string());
+        return Err(EntsoeError::ApiError(format!(
+            "API returned error (code {code}): {text}"
+        )));
+    }
+
+    let currency = currency.unwrap_or_else(|| "EUR".to_string());
     let resolution =
         resolution.ok_or_else(|| EntsoeError::MissingField("resolution".to_string()))?;
     let period_start =
