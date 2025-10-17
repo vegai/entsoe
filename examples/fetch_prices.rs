@@ -19,6 +19,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .await?;
 
     println!("{:#?}", price_doc);
+    println!();
+    println!("Note: API returns prices in EUR/MWh");
+    println!(
+        "First price: {} EUR/MWh = {} EUR/kWh",
+        price_doc.prices[0].price,
+        price_doc.prices[0].price_per_kwh()
+    );
 
     Ok(())
 }

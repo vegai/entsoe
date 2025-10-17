@@ -5,10 +5,7 @@ A Rust library for fetching and parsing data from the ENTSO-E (European Network 
 ## Features
 
 - Fetch day-ahead electricity prices for European bidding zones
-- Parse ENTSO-E XML responses into strongly-typed Rust structs
-- Async/await support with Tokio
-- Type-safe error handling
-- Comprehensive documentation and examples
+- Parse ENTSO-E XML responses into Rust structs
 
 ## Installation
 
@@ -36,7 +33,6 @@ use chrono::{Utc, Duration};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // Create client with your API token
     let client = EntsoeClient::new("your-api-token-here");
 
     // Fetch prices for Germany for the next 24 hours
@@ -83,6 +79,33 @@ Check the `examples/` directory for more usage examples:
 cargo run --example fetch_prices
 ```
 
+## CLI Tools
+
+Two command-line tools are included for working with electricity prices:
+
+1. **`entsoe-fetch`** - Fetches prices from ENTSO-E API and stores in SQLite
+2. **`entsoe-csv`** - Exports prices from SQLite database to CSV
+
+```bash
+# Build the tools
+cargo build --release --bins
+
+# Fetch prices and store in database
+export ENTSOE_API_TOKEN="your-token"
+target/release/entsoe-fetch prices.db FI 48
+
+# Export to CSV
+target/release/entsoe-csv prices.db FI > prices.csv
+```
+
+The database-backed approach allows you to:
+- Fetch data once, export many times
+- Query directly with SQL
+- Accumulate historical data
+- Run exports without API calls
+
+See [CLI_README.md](CLI_README.md) for full documentation.
+
 ## Development
 
 ### Prerequisites
@@ -90,37 +113,6 @@ cargo run --example fetch_prices
 - Rust 1.70 or later
 - An ENTSO-E API token
 
-### Building
-
-```bash
-cargo build
-```
-
-### Running Tests
-
-```bash
-cargo test
-```
-
-### Code Quality
-
-```bash
-# Format code
-cargo fmt
-
-# Run linter
-cargo clippy
-
-# Generate documentation
-cargo doc --open
-```
-
-## Documentation
-
-- **[Project Overview](.ai/PROJECT_OVERVIEW.md)** - Architecture and design
-- **[Development Guide](.ai/DEVELOPMENT_GUIDE.md)** - Coding standards and workflows
-- **[API Reference](.ai/API_REFERENCE.md)** - ENTSO-E API details
-- **[Common Prompts](.ai/PROMPTS.md)** - AI assistant tasks and examples
 
 ## Resources
 
@@ -133,6 +125,10 @@ cargo doc --open
 This project is licensed under the GNU Affero General Public License v3.0 (AGPL-3.0).
 
 See [LICENSE](LICENSE) for details.
+
+## AI
+
+Instructions for AI agents are under the hood in .ai.
 
 ## Acknowledgments
 

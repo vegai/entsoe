@@ -12,6 +12,14 @@ keywords = ["entsoe", "electricity", "energy", "api", "europe"]
 categories = ["api-bindings", "parser-implementations"]
 license = "AGPL-3.0"
 
+[[bin]]
+name = "entsoe-fetch"
+path = "src/bin/entsoe-fetch.rs"
+
+[[bin]]
+name = "entsoe-csv"
+path = "src/bin/entsoe-csv.rs"
+
 [dependencies]
 tokio = { version = "^1", features = ["full"] }
 reqwest = { version = "^0", features = ["json"] }
@@ -21,6 +29,7 @@ quick-xml = { version = "^0", features = ["serialize"] }
 thiserror = "^1"
 url = "^2"
 bytes = "^1"
+rusqlite = { version = "^0.32", features = ["bundled"] }
 
 [dev-dependencies]
 # Testing utilities
