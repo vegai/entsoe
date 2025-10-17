@@ -27,7 +27,36 @@ pub enum BiddingZone {
 }
 
 impl BiddingZone {
-    #[must_use] 
+    /// Returns all available bidding zones.
+    #[must_use]
+    pub fn all_zones() -> Vec<BiddingZone> {
+        vec![
+            BiddingZone::DE,
+            BiddingZone::AT,
+            BiddingZone::BE,
+            BiddingZone::DK1,
+            BiddingZone::DK2,
+            BiddingZone::FI,
+            BiddingZone::FR,
+            BiddingZone::ITNorth,
+            BiddingZone::NL,
+            BiddingZone::NO1,
+            BiddingZone::NO2,
+            BiddingZone::NO3,
+            BiddingZone::NO4,
+            BiddingZone::NO5,
+            BiddingZone::PL,
+            BiddingZone::ES,
+            BiddingZone::SE1,
+            BiddingZone::SE2,
+            BiddingZone::SE3,
+            BiddingZone::SE4,
+            BiddingZone::CH,
+            BiddingZone::GB,
+        ]
+    }
+
+    #[must_use]
     pub fn eic_code(&self) -> &'static str {
         match self {
             BiddingZone::DE => "10Y1001A1001A82H",
@@ -56,7 +85,7 @@ impl BiddingZone {
     }
 
     /// Parses a bidding zone from a string code (case-insensitive).
-    #[must_use] 
+    #[must_use]
     pub fn from_code(code: &str) -> Option<Self> {
         match code.to_uppercase().as_str() {
             "DE" => Some(BiddingZone::DE),
@@ -85,7 +114,7 @@ impl BiddingZone {
         }
     }
 
-    #[must_use] 
+    #[must_use]
     pub fn code(&self) -> &'static str {
         match self {
             BiddingZone::DE => "DE",
@@ -152,5 +181,14 @@ mod tests {
     fn test_display() {
         assert_eq!(format!("{}", BiddingZone::FI), "FI");
         assert_eq!(format!("{}", BiddingZone::NO2), "NO2");
+    }
+
+    #[test]
+    fn test_all_zones() {
+        let zones = BiddingZone::all_zones();
+        assert_eq!(zones.len(), 22);
+        assert!(zones.contains(&BiddingZone::FI));
+        assert!(zones.contains(&BiddingZone::NO2));
+        assert!(zones.contains(&BiddingZone::DE));
     }
 }

@@ -90,15 +90,20 @@ Two command-line tools are included for working with electricity prices:
 # Build the tools
 cargo build --release --bins
 
-# Fetch prices and store in database
+# Fetch prices and store in database (fetch all zones!)
 export ENTSOE_API_TOKEN="your-token"
+target/release/entsoe-fetch prices.db
+
+# Or fetch a specific zone
 target/release/entsoe-fetch prices.db FI 48
 
 # Export to CSV
-target/release/entsoe-csv prices.db FI > prices.csv
+target/release/entsoe-csv prices.db > all_prices.csv
+target/release/entsoe-csv prices.db FI > finland_prices.csv
 ```
 
 The database-backed approach allows you to:
+- Fetch all European zones with a single command
 - Fetch data once, export many times
 - Query directly with SQL
 - Accumulate historical data
