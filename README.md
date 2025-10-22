@@ -68,7 +68,7 @@ The library supports all European bidding zones. Common ones include:
 | Sweden SE3 | SE3 | `10Y1001A1001A46L` |
 | Netherlands | NL | `10YNL----------L` |
 
-See the [API Reference](.ai/API_REFERENCE.md) for a complete list.
+Use the `BiddingZone` enum to see all supported zones.
 
 ## Examples
 
@@ -81,10 +81,11 @@ cargo run --example fetch_prices
 
 ## CLI Tools
 
-Two command-line tools are included for working with electricity prices:
+Three command-line tools are included for working with electricity prices:
 
 1. **`entsoe-fetch`** - Fetches prices from ENTSO-E API and stores in SQLite
 2. **`entsoe-csv`** - Exports prices from SQLite database to CSV
+3. **`entsoe-ascii`** - Displays prices as ASCII graphs and analysis tables
 
 ```bash
 # Build the tools
@@ -100,6 +101,9 @@ target/release/entsoe-fetch prices.db FI 48
 # Export to CSV
 target/release/entsoe-csv prices.db > all_prices.csv
 target/release/entsoe-csv prices.db FI > finland_prices.csv
+
+# Display ASCII visualization
+target/release/entsoe-ascii prices.db FI --timezone Europe/Helsinki
 ```
 
 The database-backed approach allows you to:
@@ -109,7 +113,18 @@ The database-backed approach allows you to:
 - Accumulate historical data
 - Run exports without API calls
 
-See [CLI_README.md](CLI_README.md) for full documentation.
+### entsoe-ascii Options
+
+The ASCII visualization tool supports:
+- `--timezone TZ` - Display in any IANA timezone (e.g., Europe/Helsinki, Europe/Oslo)
+- `--hours N` - Number of hours to display (default: 24)
+- `--future` - Show only future prices with historical context
+
+It displays:
+- Cheapest consecutive hours for optimal energy consumption
+- Most expensive consecutive hours to avoid
+- ASCII graph showing price trends
+- Detailed price table in compact hourly format
 
 ## Development
 
@@ -135,9 +150,7 @@ This project is licensed under the GNU Affero General Public License v3.0 (AGPL-
 
 See [LICENSE](LICENSE) for details.
 
-## AI
 
-Instructions for AI agents are under the hood in .ai.
 
 ## Acknowledgments
 
