@@ -1,4 +1,4 @@
-use chrono::{DateTime, Duration, Utc};
+use chrono::{DateTime, Duration, TimeZone, Utc};
 use chrono_tz::Tz;
 use rusqlite::{Connection, Result as SqliteResult};
 use rust_decimal::prelude::*;
@@ -283,6 +283,82 @@ fn print_graph(periods: &[Period], timezone: &Tz) {
     );
 }
 
+fn print_price_table(periods: &[Period], timezone: &Tz) {
+    if periods.is_empty() {
+        return;
+    }
+
+    println!();
+    print_header("All prices");
+
+    // Print table header
+    println!("Time       :00   :15   :30   :45");
+    println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+
+    // Group periods by hour
+    let mut current_hour: Option<DateTime<Utc>> = None;
+    let mut hour_prices: Vec<Option<Decimal>> = vec![None; 4]; // 4 quarters per hour
+
+    for period in periods {
+        let local_time = period.start.with_timezone(timezone);
+
+        // Get the hour start by truncating to the hour
+        let hour = local_time
+            .format("%H")
+            .to_string()
+            .parse::<u32>()
+            .unwrap_or(0);
+        let minute = local_time
+            .format("%M")
+            .to_string()
+            .parse::<u32>()
+            .unwrap_or(0);
+
+        let naive_date = local_time.naive_local().date();
+        let hour_start_naive = naive_date.and_hms_opt(hour, 0, 0).unwrap();
+        let hour_start = timezone
+            .from_local_datetime(&hour_start_naive)
+            .unwrap()
+            .with_timezone(&Utc);
+
+        // Calculate which quarter of the hour (0, 1, 2, 3)
+        let quarter = (minute / 15) as usize;
+
+        // If we've moved to a new hour, print the previous hour's data
+        if let Some(prev_hour) = current_hour {
+            if hour_start != prev_hour {
+                print_hour_row(&prev_hour, &hour_prices, timezone);
+                hour_prices = vec![None; 4];
+            }
+        }
+
+        current_hour = Some(hour_start);
+        if quarter < 4 {
+            hour_prices[quarter] = Some(period.price);
+        }
+    }
+
+    // Print the last hour
+    if let Some(hour) = current_hour {
+        print_hour_row(&hour, &hour_prices, timezone);
+    }
+}
+
+fn print_hour_row(hour: &DateTime<Utc>, prices: &[Option<Decimal>], timezone: &Tz) {
+    let local_time = hour.with_timezone(timezone);
+    let time_str = local_time.format("%a %H:%M").to_string();
+
+    print!("{:<10}", time_str);
+
+    for price_opt in prices {
+        match price_opt {
+            Some(price) => print!(" {:>5.2}", price),
+            None => print!("     -"),
+        }
+    }
+    println!();
+}
+
 fn parse_timezone(tz_str: &str) -> Result<Tz, String> {
     tz_str.parse::<Tz>().map_err(|_| {
         format!(
@@ -384,10 +460,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     // Filter to future only if requested
-    // Include periods from 15 minutes ago to capture current period
+    // Include periods from 60 minutes ago to show full hour of context in price table
     if future_only {
-        data.periods
-            .retain(|p| p.start > now - Duration::minutes(15));
+        data.periods.retain(|p| p.start > now - Duration::hours(1));
     }
 
     if data.periods.is_empty() {
@@ -429,6 +504,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Graph
     print_header("Spot graph");
     print_graph(&data.periods, &timezone);
+
+    // Price table
+    print_price_table(&data.periods, &timezone);
 
     Ok(())
 }
