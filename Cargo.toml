@@ -20,6 +20,10 @@ path = "src/bin/entsoe-fetch.rs"
 name = "entsoe-csv"
 path = "src/bin/entsoe-csv.rs"
 
+[[bin]]
+name = "entsoe-ascii"
+path = "src/bin/entsoe-ascii.rs"
+
 [dependencies]
 tokio = { version = "^1", features = ["full"] }
 reqwest = { version = "^0", features = ["json"] }
@@ -30,6 +34,9 @@ thiserror = "^1"
 url = "^2"
 bytes = "^1"
 rusqlite = { version = "^0.32", features = ["bundled"] }
+chrono-tz = "^0.10"
+rasciigraph = "0.3.0"
+rust_decimal = "^1.36"
 
 [dev-dependencies]
 # Testing utilities
