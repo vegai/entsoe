@@ -362,9 +362,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let now = Utc::now();
     let start_time = if future_only {
-        now
+        now - Duration::minutes(15)
     } else {
-        now - Duration::hours(hours)
+        now - Duration::hours(hours) - Duration::minutes(15)
     };
     let end_time = now + Duration::hours(hours);
 
@@ -384,8 +384,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     // Filter to future only if requested
+    // Include periods from 15 minutes ago to capture current period
     if future_only {
-        data.periods.retain(|p| p.start > now);
+        data.periods
+            .retain(|p| p.start > now - Duration::minutes(15));
     }
 
     if data.periods.is_empty() {
