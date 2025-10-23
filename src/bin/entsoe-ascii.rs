@@ -81,21 +81,22 @@ fn find_cheapest_consecutive_hours(periods: &[Period], n: usize) -> Option<(usiz
         return None;
     }
 
-    let actual_n = if n > periods.len() { periods.len() } else { n };
-    let mut min_sum: Decimal = periods
-        .iter()
-        .take(actual_n)
-        .map(|period| period.price)
-        .sum();
+    // Need at least n periods to form a complete n-hour block
+    if periods.len() < n {
+        return None;
+    }
+
+    let mut min_sum: Decimal = periods.iter().take(n).map(|period| period.price).sum();
     let mut min_index = 0;
     let mut current_sum = min_sum;
 
-    for i in actual_n..periods.len() {
-        current_sum += periods[i].price - periods[i - actual_n].price;
+    // Only search up to positions where we have n complete hours ahead
+    for i in n..periods.len() {
+        current_sum += periods[i].price - periods[i - n].price;
 
         if current_sum < min_sum {
             min_sum = current_sum;
-            min_index = i + 1 - actual_n;
+            min_index = i + 1 - n;
         }
     }
 
@@ -107,21 +108,22 @@ fn find_expensivest_consecutive_hours(periods: &[Period], n: usize) -> Option<(u
         return None;
     }
 
-    let actual_n = if n > periods.len() { periods.len() } else { n };
-    let mut max_sum: Decimal = periods
-        .iter()
-        .take(actual_n)
-        .map(|period| period.price)
-        .sum();
+    // Need at least n periods to form a complete n-hour block
+    if periods.len() < n {
+        return None;
+    }
+
+    let mut max_sum: Decimal = periods.iter().take(n).map(|period| period.price).sum();
     let mut max_index = 0;
     let mut current_sum = max_sum;
 
-    for i in actual_n..periods.len() {
-        current_sum += periods[i].price - periods[i - actual_n].price;
+    // Only search up to positions where we have n complete hours ahead
+    for i in n..periods.len() {
+        current_sum += periods[i].price - periods[i - n].price;
 
         if current_sum > max_sum {
             max_sum = current_sum;
-            max_index = i + 1 - actual_n;
+            max_index = i + 1 - n;
         }
     }
 
@@ -130,34 +132,40 @@ fn find_expensivest_consecutive_hours(periods: &[Period], n: usize) -> Option<(u
 
 fn render_cheapest(
     periods: &[Period],
-    n: usize,
+    n_periods: usize,
 ) -> Option<(usize, DateTime<Utc>, DateTime<Utc>, Decimal)> {
-    let (index, total_price) = find_cheapest_consecutive_hours(periods, n)?;
+    let (index, total_price) = find_cheapest_consecutive_hours(periods, n_periods)?;
 
-    // Divide by n to get average, already in cents
-    let n_decimal = Decimal::from_usize(n)?;
+    // n_periods is in 15-minute periods, convert to hours for display
+    let n_hours = n_periods / 4;
+
+    // Divide by n_periods to get average, already in cents
+    let n_decimal = Decimal::from_usize(n_periods)?;
     let avg_price = total_price / n_decimal;
 
     let time_start = periods[index].start;
-    let time_end = periods[index].start + Duration::hours(n as i64);
+    let time_end = periods[index].start + Duration::hours(n_hours as i64);
 
-    Some((n, time_start, time_end, avg_price))
+    Some((n_hours, time_start, time_end, avg_price))
 }
 
 fn render_expensivest(
     periods: &[Period],
-    n: usize,
+    n_periods: usize,
 ) -> Option<(usize, DateTime<Utc>, DateTime<Utc>, Decimal)> {
-    let (index, total_price) = find_expensivest_consecutive_hours(periods, n)?;
+    let (index, total_price) = find_expensivest_consecutive_hours(periods, n_periods)?;
 
-    // Divide by n to get average, already in cents
-    let n_decimal = Decimal::from_usize(n)?;
+    // n_periods is in 15-minute periods, convert to hours for display
+    let n_hours = n_periods / 4;
+
+    // Divide by n_periods to get average, already in cents
+    let n_decimal = Decimal::from_usize(n_periods)?;
     let avg_price = total_price / n_decimal;
 
     let time_start = periods[index].start;
-    let time_end = periods[index].start + Duration::hours(n as i64);
+    let time_end = periods[index].start + Duration::hours(n_hours as i64);
 
-    Some((n, time_start, time_end, avg_price))
+    Some((n_hours, time_start, time_end, avg_price))
 }
 
 fn print_header(s: &str) {
@@ -438,7 +446,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let now = Utc::now();
     let start_time = if future_only {
-        now - Duration::minutes(15)
+        now - Duration::minutes(75)
     } else {
         now - Duration::hours(hours) - Duration::minutes(15)
     };
@@ -460,9 +468,17 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     // Filter to future only if requested
-    // Include periods from 60 minutes ago to show full hour of context in price table
+    // Round down to hour boundary to include the complete current hour
     if future_only {
-        data.periods.retain(|p| p.start > now - Duration::hours(1));
+        let cutoff = now - Duration::hours(1);
+        // Round down to the start of the hour in UTC
+        let hour = cutoff.format("%H").to_string().parse::<u32>().unwrap_or(0);
+        let cutoff_rounded = cutoff
+            .date_naive()
+            .and_hms_opt(hour, 0, 0)
+            .unwrap()
+            .and_utc();
+        data.periods.retain(|p| p.start >= cutoff_rounded);
     }
 
     if data.periods.is_empty() {
@@ -479,7 +495,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     print_header("Cheapest consecutive n hours & average price");
     let mut cheapest: Vec<(usize, DateTime<Utc>, DateTime<Utc>, Decimal)> = Vec::new();
     for n in [1, 2, 3, 5, 8, 13] {
-        if let Some(result) = render_cheapest(&data.periods, n) {
+        // Convert hours to 15-minute periods (4 periods per hour)
+        if let Some(result) = render_cheapest(&data.periods, n * 4) {
             cheapest.push(result);
         }
     }
@@ -492,7 +509,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     print_header("Priciest consecutive n hours & average price");
     let mut expensivest: Vec<(usize, DateTime<Utc>, DateTime<Utc>, Decimal)> = Vec::new();
     for n in [1, 2, 3, 5, 8, 13] {
-        if let Some(result) = render_expensivest(&data.periods, n) {
+        // Convert hours to 15-minute periods (4 periods per hour)
+        if let Some(result) = render_expensivest(&data.periods, n * 4) {
             expensivest.push(result);
         }
     }
