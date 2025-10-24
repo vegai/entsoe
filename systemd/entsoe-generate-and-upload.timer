@@ -1,0 +1,11 @@
+[Unit]
+Description=Generate and upload ENTSO-E price report every 15 minutes
+Requires=entsoe-generate-and-upload.service
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=15min
+Persistent=true
+
+[Install]
+WantedBy=timers.target

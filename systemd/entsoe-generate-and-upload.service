@@ -1,0 +1,11 @@
+[Unit]
+Description=Generate ENTSO-E price report and upload to S3
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=YOUR_USERNAME
+ExecStart=/usr/bin/nu /home/YOUR_USERNAME/entsoe-upload.nu
+StandardOutput=journal
+StandardError=journal

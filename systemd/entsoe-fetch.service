@@ -1,0 +1,12 @@
+[Unit]
+Description=Fetch electricity prices from ENTSO-E API
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=YOUR_USERNAME
+Environment="ENTSOE_API_TOKEN=your-token-here"
+ExecStart=/home/YOUR_USERNAME/entsoe/target/release/entsoe-fetch /home/YOUR_USERNAME/prices.db
+StandardOutput=journal
+StandardError=journal

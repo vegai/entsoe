@@ -1,0 +1,11 @@
+[Unit]
+Description=Fetch electricity prices every 3 hours
+Requires=entsoe-fetch.service
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=3h
+Persistent=true
+
+[Install]
+WantedBy=timers.target
