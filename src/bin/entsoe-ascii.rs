@@ -301,7 +301,7 @@ fn print_price_table(periods: &[Period], timezone: &Tz) {
 
     // Print table header
     println!("Time       :00   :15   :30   :45");
-    println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 
     // Group periods by hour
     let mut current_hour: Option<DateTime<Utc>> = None;
