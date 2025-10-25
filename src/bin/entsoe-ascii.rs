@@ -1,4 +1,5 @@
-use chrono::{DateTime, Duration, TimeZone, Utc};
+use chrono::{DateTime, Duration, LocalResult, TimeZone, Timelike, Utc};
+
 use chrono_tz::Tz;
 use rusqlite::{Connection, Result as SqliteResult};
 use rust_decimal::prelude::*;
@@ -169,7 +170,7 @@ fn render_expensivest(
 }
 
 fn print_header(s: &str) {
-    let sep: String = std::iter::repeat('━').take(s.len()).collect();
+    let sep: String = "━".repeat(s.len());
     println!("{}\n{}\n", s, sep);
 }
 
@@ -186,7 +187,7 @@ fn print_price_md_table(
     prices: Vec<(usize, DateTime<Utc>, DateTime<Utc>, Decimal)>,
     timezone: &Tz,
 ) {
-    let headers = vec!["n", "start", "end", "avg(¢/kWh)"];
+    let headers = ["n", "start", "end", "avg(¢/kWh)"];
     let time_format = "%a %H:%M";
 
     let mut max_widths = headers.iter().map(|h| h.len()).collect::<Vec<_>>();
@@ -310,34 +311,41 @@ fn print_price_table(periods: &[Period], timezone: &Tz) {
     for period in periods {
         let local_time = period.start.with_timezone(timezone);
 
-        // Get the hour start by truncating to the hour
-        let hour = local_time
-            .format("%H")
-            .to_string()
-            .parse::<u32>()
-            .unwrap_or(0);
-        let minute = local_time
-            .format("%M")
-            .to_string()
-            .parse::<u32>()
-            .unwrap_or(0);
+        let hour = local_time.hour();
+        let minute = local_time.minute();
 
-        let naive_date = local_time.naive_local().date();
+        let naive_date = local_time.date_naive();
         let hour_start_naive = naive_date.and_hms_opt(hour, 0, 0).unwrap();
-        let hour_start = timezone
-            .from_local_datetime(&hour_start_naive)
-            .unwrap()
-            .with_timezone(&Utc);
+
+        // Robust conversion that handles DST ambiguity
+        let hour_start_local = match timezone.from_local_datetime(&hour_start_naive) {
+            LocalResult::Single(t) => t,
+            LocalResult::Ambiguous(earliest, latest) => {
+                // If ambiguous, pick the one that matches the original timestamp's offset
+                if earliest.offset() == local_time.offset() {
+                    earliest
+                } else {
+                    latest
+                }
+            }
+            LocalResult::None => {
+                // This happens if the hour was skipped (Spring forward).
+                // Rare if starting from a valid time, but good to handle.
+                panic!("Invalid local time (hour skipped by DST)");
+            }
+        };
+
+        let hour_start = hour_start_local.with_timezone(&Utc);
 
         // Calculate which quarter of the hour (0, 1, 2, 3)
         let quarter = (minute / 15) as usize;
 
         // If we've moved to a new hour, print the previous hour's data
-        if let Some(prev_hour) = current_hour {
-            if hour_start != prev_hour {
-                print_hour_row(&prev_hour, &hour_prices, timezone);
-                hour_prices = vec![None; 4];
-            }
+        if let Some(prev_hour) = current_hour
+            && hour_start != prev_hour
+        {
+            print_hour_row(&prev_hour, &hour_prices, timezone);
+            hour_prices = vec![None; 4];
         }
 
         current_hour = Some(hour_start);
